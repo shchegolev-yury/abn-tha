@@ -1,0 +1,4 @@
+---
+repo: cardiffc
+image_tag: 1
+helm_source: .helm

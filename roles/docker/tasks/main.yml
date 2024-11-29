@@ -1,0 +1,16 @@
+---
+- name: Build Docker images
+  community.docker.docker_image_build:
+    name: "{{ repo }}/{{ item }}:{{ image_tag }}"
+    path: ./{{ item }}
+    dockerfile: "{{ dockerfile }}"
+    platform:
+      - linux/amd64
+  loop: "{{ app_dirs }}"
+
+- name: Push to docker hub
+  community.docker.docker_image:
+    name: "{{ repo }}/{{ item }}:{{ image_tag }}"
+    push: true
+    source: local
+  loop: "{{ app_dirs }}"

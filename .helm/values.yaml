@@ -1,0 +1,69 @@
+annotations:
+  "project": "ABNAmro Home Assignment"
+port: 5000
+environment: dev
+imagePullPolicy:
+backend:
+  public:
+    expose: true
+    baseURL: api.abnamro.test
+  fullname: backend-api
+  serviceLabels:
+    "k8s-app": "kube-Devops"
+  replicas: 2
+  image: cardiffc/backend_api
+  imageTag: 5
+  resources:
+    prod:
+      limits:
+        cpu: 4m
+        memory: 8Gi
+      requests:
+        cpu: 2
+        memory: 4Gi
+    dev:
+      limits:
+        cpu: 400m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 400Mi
+  autoscaling:
+    prod:
+      minReplicas: 3
+      maxReplicas: 12
+    dev:
+      minReplicas: 2
+      maxReplicas: 2
+    cpuTh: 80
+data:
+  fullname: data-api
+  public:
+    expose: false
+    baseURL: data.abnamro.test
+  replicas: 2
+  image: cardiffc/data_api
+  imageTag: 5
+  resources:
+    prod:
+      limits:
+        cpu: 4m
+        memory: 8Gi
+      requests:
+        cpu: 2
+        memory: 4Gi
+    dev:
+      limits:
+        cpu: 400m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 400Mi
+  autoscaling:
+    prod:
+      minReplicas: 3
+      maxReplicas: 12
+    dev:
+      minReplicas: 2
+      maxReplicas: 2
+    cpuTh: 80

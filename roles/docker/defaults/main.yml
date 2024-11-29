@@ -1,0 +1,6 @@
+---
+app_dirs:
+  - backend_api
+  - data_api
+dockerfile: Dockerfile
+

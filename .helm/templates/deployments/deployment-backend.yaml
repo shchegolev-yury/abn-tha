@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.fullname }}
+  labels:
+    app: {{ .Values.backend.fullname }}
+  {{- with .Values.backend.serviceLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  annotations:
+  {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.fullname }}
+  template:
+    metadata:
+      name: {{ .Values.backend.fullname }}
+      labels:
+        app: {{ .Values.backend.fullname }}
+      {{- with .Values.backend.serviceLabels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      annotations:
+      {{- with .Values.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: {{ .Values.backend.fullname }}
+              weight: 100
+      {{- if .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.backend.fullname }}
+          image: {{ .Values.backend.image }}:{{ .Values.backend.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "Always"}}
+          env:
+            - name: EXTERNAL_INTGERATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: EXTERNAL_INTGERATION_KEY
+                  name: {{ .Values.backend.fullname }}
+          resources:
+            {{- if eq .Values.environment "prod" }}
+            {{- toYaml .Values.backend.resources.prod | nindent 12 }}
+            {{- else if eq .Values.environment "dev" }}
+            {{- toYaml .Values.backend.resources.dev | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.port }}
+              path: /health
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.port }}
+              path: /ready
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+      restartPolicy: Always

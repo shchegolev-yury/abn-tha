@@ -1,0 +1,16 @@
+---
+- name: Deploy Helm chart
+  kubernetes.core.helm:
+    name: "{{ project_name }}"
+    chart_ref: "{{ helm_source }}"
+    release_namespace: "{{ project_name }}"
+    create_namespace: true
+    values:
+      backend:
+        image: "{{ repo }}/backend_api"
+        imageTag: "{{ image_tag }}"
+      data:
+        image: "{{ repo }}/data_api"
+        imageTag: "{{ image_tag }}"
+        environment: "{{ environment }}"
+

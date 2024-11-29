@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.backend.fullname }}
+  annotations:
+  {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+      app: {{ .Values.backend.fullname }}
+  ports:
+    - protocol: TCP
+      port: 9999
+      targetPort: {{ .Values.port }}

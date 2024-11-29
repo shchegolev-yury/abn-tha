@@ -1,0 +1,23 @@
+{{- if .Values.backend.public.expose }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.backend.fullname }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  - host: {{ .Values.backend.public.baseURL }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.backend.fullname }}
+            port:
+              number: {{ .Values.port }}
+{{- end }}

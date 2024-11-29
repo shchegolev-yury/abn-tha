@@ -1,0 +1,7 @@
+images:
+  backend:
+    image_name: "{{ repo }}/backend_api"
+  data:
+    image_name: "{{ repo }}/data_api"
+project_name: abn-amro-tha
+environment: dev

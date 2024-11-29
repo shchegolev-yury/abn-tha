@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.data.fullname }}
+  labels:
+    app: {{ .Values.data.fullname }}
+  annotations:
+  {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.data.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.data.fullname }}
+  template:
+    metadata:
+      name: {{ .Values.data.fullname }}
+      labels:
+        app: {{ .Values.data.fullname }}
+      annotations:
+      {{- with .Values.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: {{ .Values.data.fullname }}
+              weight: 100
+      {{- if .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.data.fullname }}
+          image: {{ .Values.data.image }}:{{ .Values.data.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "Always"}}
+          resources:
+            {{- if eq .Values.environment "prod" }}
+            {{- toYaml .Values.data.resources.prod | nindent 12 }}
+            {{- else if eq .Values.environment "dev" }}
+            {{- toYaml .Values.data.resources.dev | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.port }}
+              path: /health
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.port }}
+              path: /ready
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+      restartPolicy: Always
